@@ -9,12 +9,14 @@ import android.os.Bundle;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AlertDialog;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -36,7 +38,7 @@ public class AddDialog extends DialogFragment {
 
     int rs = 0;
     int category = 0;
-    String date,time;
+    String date, time;
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -58,7 +60,15 @@ public class AddDialog extends DialogFragment {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
 
-                        rs = Integer.parseInt(mEditText.getText().toString());
+                        String rsT = mEditText.getText().toString();
+
+                        if (rsT.equals("")) {
+                            Toast.makeText(getActivity(), "Please enter value", Toast.LENGTH_SHORT).show();
+                            return;
+                        } else {
+                            rs = Integer.parseInt(rsT);
+                        }
+
                         category = mSpinner.getSelectedItemPosition();
 
                         DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
@@ -68,7 +78,7 @@ public class AddDialog extends DialogFragment {
                         DateFormat timeFormat = new SimpleDateFormat("HH:mm");
                         time = timeFormat.format(dateFormt);
 
-                        pushDataOndatabase(rs, category, date,time);
+                        pushDataOndatabase(rs, category, date, time);
 
                     }
                 });
@@ -76,7 +86,7 @@ public class AddDialog extends DialogFragment {
         return builder.create();
     }
 
-    private void pushDataOndatabase(int rs, int category, String date,String Time) {
+    private void pushDataOndatabase(int rs, int category, String date, String Time) {
 
         mReference.child("Rs").setValue(rs);
         mReference.child("Category").setValue(category);

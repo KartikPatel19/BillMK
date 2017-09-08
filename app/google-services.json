@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "333571127793",
+    "firebase_url": "https://billmk-c9fb6.firebaseio.com",
+    "project_id": "billmk-c9fb6",
+    "storage_bucket": "billmk-c9fb6.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:333571127793:android:f8cf1e7017216dd2",
+        "android_client_info": {
+          "package_name": "com.deucate.kartik.billmk"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "333571127793-jao4iahatioqh7e3feuv6unpblq4u8dl.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.deucate.kartik.billmk",
+            "certificate_hash": "756e39088dda0bdb01ca67da54de3f15cac9de75"
+          }
+        },
+        {
+          "client_id": "333571127793-gm2qmhhqi4g98lunc3ol27iekp8nrhol.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDt6zk3r27w9voczdnQW2cBlgTqS-RK2HU"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "333571127793-gm2qmhhqi4g98lunc3ol27iekp8nrhol.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

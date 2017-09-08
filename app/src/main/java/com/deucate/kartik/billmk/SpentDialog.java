@@ -7,14 +7,18 @@ import android.app.DialogFragment;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+
+import org.w3c.dom.Text;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -56,7 +60,20 @@ public class SpentDialog extends DialogFragment {
 
                         mReason = mReasonET.getText().toString();
                         category = mSpinner.getSelectedItemPosition();
-                        rs = Integer.parseInt(rsET.getText().toString());
+                        String rsT = rsET.getText().toString();
+
+                        if (TextUtils.isEmpty(mReason)){
+                            mReasonET.setError("Please enter reason");
+                            Toast.makeText(getActivity(), "Please enter reason", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+
+                        if (rsT.equals("")){
+                            Toast.makeText(getActivity(), "Please enter value", Toast.LENGTH_SHORT).show();
+                            return;
+                        }else {
+                            rs = Integer.parseInt(rsT);
+                        }
 
                         @SuppressLint("SimpleDateFormat")
                         DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
