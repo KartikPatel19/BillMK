@@ -9,6 +9,7 @@
     <string name="add_value">Add</string>
     <string name="reason">Reason</string>
     <string name="spent">Spent</string>
+    <string name="over_view">Over View</string>
 
     <string-array name="add_array">
         <item>Salary</item>

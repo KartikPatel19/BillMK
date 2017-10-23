@@ -2,31 +2,47 @@ package com.deucate.kartik.billmk;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineDataSet;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.ChildEventListener;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QuerySnapshot;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final String TAG = "MainActivity";
     TextView mCurrentRS;
 
-    FirebaseDatabase mDatabase;
-    DatabaseReference mReferenceAdd;
-    DatabaseReference mReferenceSpent;
+//    FirebaseDatabase mDatabase;
+//    DatabaseReference mReferenceAdd;
+//    DatabaseReference mReferenceSpent;
+    FirebaseFirestore mFirestore;
+    DocumentReference mDocumentReferenceAdd,mDocumentReferenceSpent;
+
+
     FirebaseAuth mAuth;
 
     Button mOverViewBtn;
+    LineChart mLineChart;
 
-    int addedValue = 0, spentedValue = 0, currentValue = 0;
+    List<Integer> mChartSpentData = new ArrayList<>();
+
+    long addedValue = 0, spentedValue = 0, currentValue = 0;
     String localSymbol = "₹";
 
     @Override
@@ -35,13 +51,12 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         mAuth = FirebaseAuth.getInstance();
-        mDatabase = FirebaseDatabase.getInstance();
-        String uid = mAuth.getCurrentUser().getUid();
-        mReferenceAdd = mDatabase.getReference().child("Add").child(uid);
-        mReferenceSpent = mDatabase.getReference().child("Spent").child(uid);
+        mFirestore = FirebaseFirestore.getInstance();
+        mDocumentReferenceAdd = mFirestore.collection("UserData").document("Add");
+        mDocumentReferenceSpent = mFirestore.collection("UserData").document("Spent");
 
         mOverViewBtn = findViewById(R.id.mainOverViewBtn);
-
+        mLineChart = findViewById(R.id.mainLineChart);
         mCurrentRS = findViewById(R.id.mainCurrentText);
 
         syncData();
@@ -61,75 +76,58 @@ public class MainActivity extends AppCompatActivity {
 
     protected void syncData() throws NullPointerException {
 
+        String uid = mAuth.getCurrentUser().getUid();
+
         currentValue = 0;
         spentedValue = 0;
         addedValue = 0;
 
-        mReferenceAdd.addChildEventListener(new ChildEventListener() {
+        mDocumentReferenceAdd.collection(uid).get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-
-                addedValue += dataSnapshot.child("Rs").getValue(int.class);
-                currentValue = addedValue - spentedValue;
-                mCurrentRS.setText(currentValue + "");
-
-            }
-
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
-            }
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-
-            }
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-
-        mReferenceSpent.addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-
-                try {
-                    spentedValue += dataSnapshot.child("Rs").getValue(int.class);
-                } catch (NullPointerException e) {
-                    Log.d("---->", "onChildAdded: " + e.getLocalizedMessage());
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if (task.isSuccessful()){
+                    for (DocumentSnapshot documentSnapshot : task.getResult()){
+                        Log.d(TAG, documentSnapshot.getId() + " => " + documentSnapshot.getData());
+                        addedValue += (long) documentSnapshot.get("Rs");
+                    }
+                    currentValue=0;
+                    currentValue = addedValue-spentedValue;
+                    mCurrentRS.setText(localSymbol+currentValue);
+                }else {
+                    Log.d(TAG, "Error getting documents: ", task.getException());
                 }
-
-                currentValue = addedValue - spentedValue;
-                mCurrentRS.setText(localSymbol + currentValue);
-
-            }
-
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-            }
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-
-            }
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
             }
         });
+
+        mDocumentReferenceSpent.collection(uid).get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if (task.isSuccessful()){
+                    for (DocumentSnapshot documentSnapshot : task.getResult()) {
+                        Log.d(TAG, documentSnapshot.getId() + " => " + documentSnapshot.getData());
+                        long currentSpent =(long) documentSnapshot.get("Rs");
+                        spentedValue += currentSpent;
+                        mChartSpentData.add((int)currentSpent);
+
+                    }
+                    currentValue=0;
+                    currentValue = addedValue-spentedValue;
+                    mCurrentRS.setText(localSymbol+currentValue);
+                }else {
+                    Log.d(TAG, "Error getting documents: ", task.getException());
+                }
+            }
+        });
+
+        List<Entry> entries = new ArrayList<>();
+
+        int i = 0;
+        for(int currentRS : mChartSpentData){
+            i++;
+            entries.add(new Entry(i,(float) currentRS));
+        }
+        LineDataSet dataSet = new LineDataSet(entries,"Usage");
+
     }
 
     public void onMoneyAdd(View view) {
@@ -140,10 +138,6 @@ public class MainActivity extends AppCompatActivity {
     public void onMoneySpent(View view) {
         SpentDialog spentDialog = new SpentDialog();
         spentDialog.show(getFragmentManager(), "");
-    }
-
-    public void onLayoutClick(View view) {
-        syncData();
     }
 
 }

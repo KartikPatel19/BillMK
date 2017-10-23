@@ -14,8 +14,10 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -33,10 +35,9 @@ public class AddDialog extends DialogFragment {
     EditText mEditText;
     Spinner mSpinner;
 
-//    FirebaseDatabase mDatabase;
-//    DatabaseReference mReference;
+    FirebaseFirestore mFirestore;
+    DocumentReference mDocumentReference;
 
-    FirebaseFirestore mDatabase;
 
     int rs = 0;
     int category = 0;
@@ -48,8 +49,8 @@ public class AddDialog extends DialogFragment {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         LayoutInflater inflater = getActivity().getLayoutInflater();
 
-        mDatabase = FirebaseFirestore.getInstance();
-//        mReference = mDatabase.getReference().child("Add").child(uid).push();
+        mFirestore = FirebaseFirestore.getInstance();
+        mDocumentReference = mFirestore.collection("UserData").document("Add");
 
         View view = inflater.inflate(R.layout.add_dialog_alert, null);
 
@@ -97,17 +98,14 @@ public class AddDialog extends DialogFragment {
         data.put("Time", Time);
 
         String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-
-        mDatabase.document("add").collection(uid).add(data)
-                .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                    @Override
-                    public void onSuccess(DocumentReference documentReference) {
-                        Log.d(TAG, "onSuccess: ----.Yeh!");
-                    }
-                }).addOnFailureListener(new OnFailureListener() {
+        mDocumentReference.collection(uid).add(data).addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
             @Override
-            public void onFailure(@NonNull Exception e) {
-                Log.e(TAG, "onFailure: ", e);
+            public void onComplete(@NonNull Task<DocumentReference> task) {
+                if (task.isSuccessful()){
+                    Log.d(TAG, "onComplete: -----------> Task compllate");
+                }else {
+                    Log.d(TAG, "onComplete: -------------> Task failed"+task.getException().getLocalizedMessage());
+                }
             }
         });
 

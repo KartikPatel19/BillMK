@@ -5,7 +5,6 @@
                                              android:layout_width="match_parent"
                                              android:layout_height="match_parent"
                                              android:background="@drawable/bg_gradient"
-                                             android:onClick="onLayoutClick"
                                              tools:context="com.deucate.kartik.billmk.MainActivity"
                                              tools:layout_editor_absoluteX="0dp"
                                              tools:layout_editor_absoluteY="0dp">
@@ -133,13 +132,28 @@
         android:id="@+id/mainOverViewBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
         android:background="#45FFFFFF"
-        android:text="Over View"
+        android:text="@string/over_view"
         android:textColor="#FFF"
-        tools:layout_constraintBottom_creator="1"
         app:layout_constraintBottom_toTopOf="@+id/linearLayout"
-        tools:layout_constraintLeft_creator="1"
-        app:layout_constraintLeft_toRightOf="@+id/linearLayout"
-        android:layout_marginBottom="0dp"/>
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:layout_constraintBottom_creator="1"
+        tools:layout_constraintLeft_creator="1" />
+
+    <com.github.mikephil.charting.charts.LineChart
+        android:id="@+id/mainLineChart"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintBottom_toTopOf="@+id/mainOverViewBtn"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/relativeLayout" />
 
 </android.support.constraint.ConstraintLayout>

@@ -6,23 +6,33 @@ import android.app.Dialog;
 import android.app.DialogFragment;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import org.w3c.dom.Text;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
+import static android.content.ContentValues.TAG;
 
 public class SpentDialog extends DialogFragment {
 
@@ -32,8 +42,9 @@ public class SpentDialog extends DialogFragment {
     String mReason, date,time;
     int category, rs;
 
-    FirebaseDatabase mDatabase;
-    DatabaseReference mReference;
+    DocumentReference mDocumentReference;
+//    FirebaseDatabase mDatabase;
+//    DatabaseReference mReference;
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -44,9 +55,10 @@ public class SpentDialog extends DialogFragment {
         @SuppressLint("InflateParams")
         View view = inflater.inflate(R.layout.spent_dialog, null);
 
-        mDatabase = FirebaseDatabase.getInstance();
-        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        mReference = mDatabase.getReference().child("Spent").child(uid).push();
+//        mDatabase = FirebaseDatabase.getInstance();
+//        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+//        mReference = mDatabase.getReference().child("Spent").child(uid).push();
+        mDocumentReference = FirebaseFirestore.getInstance().collection("UserData").document("Spent");
 
         mReasonET = view.findViewById(R.id.alertSpentReason);
         rsET = view.findViewById(R.id.alertSpentRs);
@@ -94,11 +106,25 @@ public class SpentDialog extends DialogFragment {
 
     private void pushDataOnDatabase(String reason, int category, String date, int rs,String time) {
 
-        mReference.child("Reason").setValue(reason);
-        mReference.child("Rs").setValue(rs);
-        mReference.child("Category").setValue(category);
-        mReference.child("Date").setValue(date);
-        mReference.child("Time").setValue(time);
+        Map<String, Object> data = new HashMap<>();
+
+        data.put("Reason",reason);
+        data.put("Rs", rs);
+        data.put("Category", category);
+        data.put("Date", date);
+        data.put("Time", time);
+
+        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        mDocumentReference.collection(uid).add(data).addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentReference> task) {
+                if (task.isSuccessful()){
+                    Log.d(TAG, "onComplete: -----------> Task complete");
+                }else {
+                    Log.d(TAG, "onComplete: -------------> Task failed"+task.getException().getLocalizedMessage());
+                }
+            }
+        });
 
     }
 
