@@ -1,28 +1,19 @@
 package com.deucate.kartik.billmk;
 
 import android.content.Intent;
-import android.graphics.Color;
-import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.deucate.kartik.billmk.Add.AddList;
-import com.deucate.kartik.billmk.Login.LoginActivity;
-import com.deucate.kartik.billmk.OverView.OverViewDialog;
-import com.deucate.kartik.billmk.Spent.SpentList;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-
-import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -33,7 +24,7 @@ public class MainActivity extends AppCompatActivity {
     DatabaseReference mReferenceSpent;
     FirebaseAuth mAuth;
 
-    Button mLogoutBtn,mOverViewBtn;
+    Button mOverViewBtn;
 
     int addedValue = 0, spentedValue = 0, currentValue = 0;
     String localSymbol = "₹";
@@ -49,12 +40,9 @@ public class MainActivity extends AppCompatActivity {
         mReferenceAdd = mDatabase.getReference().child("Add").child(uid);
         mReferenceSpent = mDatabase.getReference().child("Spent").child(uid);
 
-        mLogoutBtn = (Button) findViewById(R.id.mainLogout);
-        mOverViewBtn = (Button) findViewById(R.id.mainOverViewBtn);
+        mOverViewBtn = findViewById(R.id.mainOverViewBtn);
 
-        mLogoutBtn.setBackgroundColor(Color.parseColor("#45FFAAAA"));
-        mLogoutBtn.setTextColor(Color.parseColor("#FFFFFF"));
-        mCurrentRS = (TextView) findViewById(R.id.mainCurrentText);
+        mCurrentRS = findViewById(R.id.mainCurrentText);
 
         syncData();
 
@@ -62,7 +50,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
-                Intent intent = new Intent(MainActivity.this,OverviewActivity.class);
+                Intent intent = new Intent(MainActivity.this, OverviewActivity.class);
                 startActivity(intent);
 
             }
@@ -71,11 +59,11 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    protected void syncData() throws NullPointerException{
+    protected void syncData() throws NullPointerException {
 
-        currentValue=0;
-        spentedValue=0;
-        addedValue=0;
+        currentValue = 0;
+        spentedValue = 0;
+        addedValue = 0;
 
         mReferenceAdd.addChildEventListener(new ChildEventListener() {
             @Override
@@ -83,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
 
                 addedValue += dataSnapshot.child("Rs").getValue(int.class);
                 currentValue = addedValue - spentedValue;
-                mCurrentRS.setText(currentValue+"");
+                mCurrentRS.setText(currentValue + "");
 
             }
 
@@ -112,14 +100,14 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
 
-                try{
+                try {
                     spentedValue += dataSnapshot.child("Rs").getValue(int.class);
-                }catch (NullPointerException e){
-                    Log.d("---->", "onChildAdded: "+e.getLocalizedMessage());
+                } catch (NullPointerException e) {
+                    Log.d("---->", "onChildAdded: " + e.getLocalizedMessage());
                 }
 
                 currentValue = addedValue - spentedValue;
-                mCurrentRS.setText(localSymbol+currentValue);
+                mCurrentRS.setText(localSymbol + currentValue);
 
             }
 
@@ -154,26 +142,8 @@ public class MainActivity extends AppCompatActivity {
         spentDialog.show(getFragmentManager(), "");
     }
 
-    public void onClickAdded(View view) {
-        Intent intent = new Intent(MainActivity.this, AddList.class);
-        startActivity(intent);
-    }
-
-    public void onClickSpented(View view) {
-        Intent intent = new Intent(MainActivity.this, SpentList.class);
-        startActivity(intent);
-    }
-
     public void onLayoutClick(View view) {
         syncData();
     }
 
-    public void onlogout(View view) {
-
-        mAuth.signOut();
-        Intent intent = new Intent(MainActivity.this, LoginActivity.class);
-        startActivity(intent);
-        finish();
-
-    }
 }
