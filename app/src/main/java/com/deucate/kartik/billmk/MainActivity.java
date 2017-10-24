@@ -1,143 +1,93 @@
 package com.deucate.kartik.billmk;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.NavigationView;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
-import android.view.View;
-import android.widget.Button;
-import android.widget.TextView;
+import android.view.Menu;
+import android.view.MenuItem;
 
-import com.github.mikephil.charting.charts.LineChart;
-import com.github.mikephil.charting.data.Entry;
-import com.github.mikephil.charting.data.LineDataSet;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QuerySnapshot;
-
-import java.util.ArrayList;
-import java.util.List;
-
-public class MainActivity extends AppCompatActivity {
-
-    private static final String TAG = "MainActivity";
-    TextView mCurrentRS;
-
-//    FirebaseDatabase mDatabase;
-//    DatabaseReference mReferenceAdd;
-//    DatabaseReference mReferenceSpent;
-    FirebaseFirestore mFirestore;
-    DocumentReference mDocumentReferenceAdd,mDocumentReferenceSpent;
-
-
-    FirebaseAuth mAuth;
-
-    Button mOverViewBtn;
-    LineChart mLineChart;
-
-    List<Integer> mChartSpentData = new ArrayList<>();
-
-    long addedValue = 0, spentedValue = 0, currentValue = 0;
-    String localSymbol = "₹";
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mAuth = FirebaseAuth.getInstance();
-        mFirestore = FirebaseFirestore.getInstance();
-        mDocumentReferenceAdd = mFirestore.collection("UserData").document("Add");
-        mDocumentReferenceSpent = mFirestore.collection("UserData").document("Spent");
+        Fragment fragment = new MainFragment();
 
-        mOverViewBtn = findViewById(R.id.mainOverViewBtn);
-        mLineChart = findViewById(R.id.mainLineChart);
-        mCurrentRS = findViewById(R.id.mainCurrentText);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
 
-        syncData();
+        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+        fragmentTransaction.replace(R.id.mainContainer,fragment);
+        fragmentTransaction.commit();
 
-        mOverViewBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-                Intent intent = new Intent(MainActivity.this, OverviewActivity.class);
-                startActivity(intent);
-
-            }
-        });
-
-
+        NavigationView navigationView = findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
     }
 
-    protected void syncData() throws NullPointerException {
-
-        String uid = mAuth.getCurrentUser().getUid();
-
-        currentValue = 0;
-        spentedValue = 0;
-        addedValue = 0;
-
-        mDocumentReferenceAdd.collection(uid).get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                if (task.isSuccessful()){
-                    for (DocumentSnapshot documentSnapshot : task.getResult()){
-                        Log.d(TAG, documentSnapshot.getId() + " => " + documentSnapshot.getData());
-                        addedValue += (long) documentSnapshot.get("Rs");
-                    }
-                    currentValue=0;
-                    currentValue = addedValue-spentedValue;
-                    mCurrentRS.setText(localSymbol+currentValue);
-                }else {
-                    Log.d(TAG, "Error getting documents: ", task.getException());
-                }
-            }
-        });
-
-        mDocumentReferenceSpent.collection(uid).get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                if (task.isSuccessful()){
-                    for (DocumentSnapshot documentSnapshot : task.getResult()) {
-                        Log.d(TAG, documentSnapshot.getId() + " => " + documentSnapshot.getData());
-                        long currentSpent =(long) documentSnapshot.get("Rs");
-                        spentedValue += currentSpent;
-                        mChartSpentData.add((int)currentSpent);
-
-                    }
-                    currentValue=0;
-                    currentValue = addedValue-spentedValue;
-                    mCurrentRS.setText(localSymbol+currentValue);
-                }else {
-                    Log.d(TAG, "Error getting documents: ", task.getException());
-                }
-            }
-        });
-
-        List<Entry> entries = new ArrayList<>();
-
-        int i = 0;
-        for(int currentRS : mChartSpentData){
-            i++;
-            entries.add(new Entry(i,(float) currentRS));
+    @Override
+    public void onBackPressed() {
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        if (drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
         }
-        LineDataSet dataSet = new LineDataSet(entries,"Usage");
-
     }
 
-    public void onMoneyAdd(View view) {
-        AddDialog addDialog = new AddDialog();
-        addDialog.show(getFragmentManager(), "");
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
     }
 
-    public void onMoneySpent(View view) {
-        SpentDialog spentDialog = new SpentDialog();
-        spentDialog.show(getFragmentManager(), "");
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_settings) {
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
+    @SuppressWarnings("StatementWithEmptyBody")
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        // Handle navigation view item clicks here.
+        int id = item.getItemId();
+
+        if (id == R.id.nav_camera) {
+            // Handle the camera action
+        } else if (id == R.id.nav_gallery) {
+
+        } else if (id == R.id.nav_slideshow) {
+
+        } else if (id == R.id.nav_manage) {
+
+        } else if (id == R.id.nav_share) {
+
+        } else if (id == R.id.nav_send) {
+
+        }
+
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        drawer.closeDrawer(GravityCompat.START);
+        return true;
+    }
 }
